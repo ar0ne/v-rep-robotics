@@ -196,7 +196,7 @@ class Robot:
                 self.move(speed, -speed)
             else:
                 self.move(-speed, speed)
-                
+
             norm = np.linalg.norm(self.read_robot_orientation())
             # print(norm, rad_alpha)
 
