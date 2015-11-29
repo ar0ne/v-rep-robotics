@@ -33,8 +33,6 @@ class Robot:
                                      30/180.0 * PI, 50/180.0 * PI, PI/2, PI/2, 130/180.0 * PI, 150/180.0 * PI,
                                      170/180.0 * PI, -170/180.0 * PI, -150/180.0 * PI, -130/180.0 * PI, -PI/2])
 
-
-
     def _init_client_id(self):
 
         client_id = vrep.simxStart(self._hostname, self._port, True, True, 5000, 5)
@@ -53,10 +51,6 @@ class Robot:
 
             self.move(v_l, v_r)
 
-            print "OLOLO"
-
-            self.sleep()
-
             # other stuff
 
     def move(self, v_l = 1, v_r = 1):
@@ -70,7 +64,7 @@ class Robot:
         # Check if we detect something
         #
         #
-        return 1,1
+        return 1, 1
 
     def _init_target_position(self):
         self.sleep()
@@ -163,7 +157,6 @@ class Robot:
             norm = np.linalg.norm(self.read_robot_orientation())
             # print(norm, ornt)
 
-
     def rotate_robot_to_target(self):
 
         print("Rotate to target...")
@@ -207,14 +200,21 @@ class Robot:
         x0, y0, _ = self.read_robot_position()
         x1, y1, _ = self.read_target_position()
 
-        alpha = math.atan2(y0 - y1, x0 - x1) / PI * 180
+        delta_y, delta_x = 0, 0
+
+        if y0 > y1 and x0 > x1:
+            delta_y = y1 - y0
+            delta_x = x1 - x0
+        else:
+            delta_y = y0 - y1
+            delta_x = x0 - x1
+
+        alpha = math.atan2(delta_y, delta_x) / PI * 180
 
         if alpha < 0:
             alpha += 360
 
         return alpha
-
-        # if b
 
     def rad2deg(self, rad):
         return rad * 180 / PI
