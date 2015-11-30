@@ -11,14 +11,13 @@ from support import *
 
 PI = math.pi
 
-def angle_between_vectors( a, b ):  # a -> b
+def angle_between_vectors(a, b):  # a -> b
 
     a = a.unitVector()
     b = b.unitVector()
     angle = math.acos( b.dot( a ) )
-    if ( a.multiply(b) ).z > 0.0:
-        angle = -angle
-
+    if (a.multiply(b)).z > 0.0:
+        return -angle
     return angle
 
 class State:
@@ -56,7 +55,6 @@ if __name__ == '__main__':
             sensor_handles.append(sensor_handle)
             vrep.simxReadProximitySensor(clientID, sensor_handle, vrep.simx_opmode_streaming)
 
-
     obstacleDistStabPID = PIDController(50.0)
     obstacleFolowerPID = PIDController(50.0)
     obstacleDistStabPID.setCoefficients(2, 0, 0.5)
@@ -67,7 +65,7 @@ if __name__ == '__main__':
     minDetectionDist = 0.0
     maxDetectionDist = 1.0
     detect = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-    motorsPower = 2.0
+    motorsPower = 1.0
     withstandDist = 0.5
 
     targetDir = Vector3()
@@ -76,7 +74,7 @@ if __name__ == '__main__':
 
     error_code, bot_pos = vrep.simxGetObjectPosition(clientID, bot_handle, -1, vrep.simx_opmode_oneshot )
 
-    error_code, bot_eulear_angles = vrep.simxGetObjectOrientation(clientID, bot_handle, -1, vrep.simx_opmode_streaming )
+    error_code, bot_euler_angles = vrep.simxGetObjectOrientation(clientID, bot_handle, -1, vrep.simx_opmode_streaming )
 
     while(True):
 
@@ -107,7 +105,7 @@ if __name__ == '__main__':
             elif dist > maxDetectionDist or detection_state is False:
                 detect[i] = 1.0
             else:
-                detect[i] = 1 - ( ( dist - maxDetectionDist ) / ( minDetectionDist - maxDetectionDist ) )
+                detect[i] = 1 - (( dist - maxDetectionDist ) / ( minDetectionDist - maxDetectionDist ))
 
         goalPos.z = botPos.z = 0.0
         qRot = Quaternion()
@@ -136,7 +134,7 @@ if __name__ == '__main__':
         elif state == State.ROTATING:
 
             angle = angle_between_vectors( botDir, targetDir )
-            if abs( angle ) > 5.0 / 180.0 * PI:
+            if math.fabs(angle) > 5.0 / 180.0 * PI:
                 vrep.simxSetJointTargetVelocity( clientID, left_motor_handle, angle, vrep.simx_opmode_streaming )
                 vrep.simxSetJointTargetVelocity( clientID, right_motor_handle, -angle, vrep.simx_opmode_streaming )
             else:

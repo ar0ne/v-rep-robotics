@@ -36,12 +36,11 @@ class Matrix3:
 
         return inv
 
-    def multiply(self, vector):
+    def multiply(self, v):
         res = Vector3()
-        m_m = self.m * vector
-        res.x = m_m[0]
-        res.y = m_m[1]
-        res.z = m_m[2]
+        res.x = self.m[0][0] * v[0] + self.m[0][1] * v[1] + self.m[0][2] * v[2]
+        res.y = self.m[1][0] * v[0] + self.m[1][1] * v[1] + self.m[1][2] * v[2]
+        res.z = self.m[2][0] * v[0] + self.m[2][1] * v[1] + self.m[2][2] * v[2]
 
         return res
 
