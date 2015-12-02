@@ -15,19 +15,18 @@ PI = math.pi
 class State:
     MOVING = 1
     ROTATING = 2
-    ENVELOPING = 3
+    ROUNDING = 3
 
 class Bug2:
     def __init__(self):
-
-        self._init_client_id()
-        self._init_handles()
-        self._init_sensor_handles()
 
         self.state = State.MOVING
 
         self.MIN_DETECTION_DIST = 0.0
         self.MAX_DETECTION_DIST = 1.0
+
+        self.TARGET_NAME = 'target'
+        self.BOT_NAME = 'Bot'
         self.WHEEL_SPEED = 1.0
         self.INDENT_DIST = 0.5
 
@@ -45,7 +44,14 @@ class Bug2:
         self.targetPos = None
         self.botEulerAngles = None
 
+        self.rounding_diff_dist = None
+
         self.detect = np.zeros(16)
+
+        self._init_client_id()
+        self._init_handles()
+        self._init_sensor_handles()
+
 
     def _init_client_id(self):
         vrep.simxFinish(-1)
@@ -79,12 +85,12 @@ class Bug2:
 
     def _init_robot_handle(self):
         # handle of robot
-        error_code, self.bot_handle = vrep.simxGetObjectHandle(self.client_id, 'Pioneer_p3dx',
+        error_code, self.bot_handle = vrep.simxGetObjectHandle(self.client_id, self.BOT_NAME,
                                                                vrep.simx_opmode_oneshot_wait)
 
     def _init_target_handle(self):
         # get handle of target robot
-        error_code, self.target_handle = vrep.simxGetObjectHandle(self.client_id, 'target',
+        error_code, self.target_handle = vrep.simxGetObjectHandle(self.client_id, self.TARGET_NAME,
                                                                   vrep.simx_opmode_oneshot_wait)
 
     def _init_wheels_handle(self):
@@ -118,13 +124,13 @@ class Bug2:
     def read_values(self):
 
         error_code, self.target_pos = vrep.simxGetObjectPosition(self.client_id, self.target_handle, -1,
-                                                                 vrep.simx_opmode_buffer)
+                                                                 vrep.simx_opmode_streaming)
 
         error_code, self.bot_pos = vrep.simxGetObjectPosition(self.client_id, self.bot_handle, -1,
-                                                              vrep.simx_opmode_buffer)
+                                                              vrep.simx_opmode_streaming)
 
         error_code, self.bot_euler_angles = vrep.simxGetObjectOrientation(self.client_id, self.bot_handle, -1,
-                                                                          vrep.simx_opmode_buffer)
+                                                                          vrep.simx_opmode_streaming)
 
     def stop_move(self):
         error_code = vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  0, vrep.simx_opmode_streaming)
@@ -134,7 +140,7 @@ class Bug2:
 
         for i in range(0, 16):
 
-            error_code, detection_state, detected_point, detected_object_handle, detected_surface_normal_vector = vrep.simxReadProximitySensor(self.client_id, self.sensor_handles[i], vrep.simx_opmode_buffer)
+            error_code, detection_state, detected_point, detected_object_handle, detected_surface_normal_vector = vrep.simxReadProximitySensor(self.client_id, self.sensor_handles[i], vrep.simx_opmode_streaming)
 
             dist = math.sqrt(np.sum(np.array(detected_point) ** 2))
 
@@ -174,14 +180,14 @@ class Bug2:
             self.targetPos.z = self.botPos.z = 0.0
             qRot = Quaternion()
             qRot.set_from_vector(self.botEulerAngles.z, Vector3(0.0, 0.0, 1.0))
-            self.botDir = qRot.rotate( Vector3(1.0, 0.0, 0.0))
+            self.botDir = qRot.rotate(Vector3(1.0, 0.0, 0.0))
 
             if self.state == State.MOVING:
                 self.action_moving()
             elif self.state == State.ROTATING:
                 self.action_rotating()
-            elif self.state == State.ENVELOPING:
-                self.action_enveloping()
+            elif self.state == State.ROUNDING:
+                self.action_rounding()
 
     def action_moving(self):
 
@@ -189,7 +195,7 @@ class Bug2:
 
             self.state = State.ROTATING
             tmp = Quaternion()
-            tmp.set_from_vector(PI / 2.0, Vector3( 0.0, 0.0, 1.0 ))
+            tmp.set_from_vector(PI / 2.0, Vector3(0.0, 0.0, 1.0))
             self.targetDir = tmp.rotate(self.botDir)
 
             return
@@ -197,10 +203,10 @@ class Bug2:
         angle = self.angle_between_vectors(self.botDir, self.targetPos.minus(self.botPos))
 
         if math.fabs(angle) > 1.0 / 180.0 * PI:
-            vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle, self.WHEEL_SPEED + angle, vrep.simx_opmode_streaming)
+            vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  self.WHEEL_SPEED + angle, vrep.simx_opmode_streaming)
             vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor_handle, self.WHEEL_SPEED - angle, vrep.simx_opmode_streaming)
         else:
-            vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle, self.WHEEL_SPEED, vrep.simx_opmode_streaming)
+            vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  self.WHEEL_SPEED, vrep.simx_opmode_streaming)
             vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor_handle, self.WHEEL_SPEED, vrep.simx_opmode_streaming)
 
     def action_rotating(self):
@@ -211,16 +217,21 @@ class Bug2:
             vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,   angle, vrep.simx_opmode_streaming)
             vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor_handle, -angle, vrep.simx_opmode_streaming)
         else:
-            self.state = State.ENVELOPING
+            self.state = State.ROUNDING
 
-    def action_enveloping(self):
+    def action_rounding(self):
+
         tmp_dir = Quaternion()
         tmp_dir.set_from_vector(PI / 2.0, Vector3(0.0, 0.0, 1.0))
         perp_bot_dir = tmp_dir.rotate(self.botDir)
 
         angle = self.angle_between_vectors(perp_bot_dir, self.targetPos.minus(self.botPos))
 
-        if math.fabs(angle) < 5.0 / 180.0 * PI:
+        # if math.fabs(angle) < 5.0 / 180.0 * PI:
+        print(self.distance_between(self.botPos, self.targetPos))
+        if self.rounding_diff_dist is None or self.rounding_diff_dist <= self.distance_between(self.botPos, self.targetPos):
+            self.rounding_diff_dist = self.distance_between(self.botPos, self.targetPos)
+        elif math.fabs(angle) < 5.0 / 180.0 * PI:
             self.state = State.MOVING
             return
 
@@ -234,13 +245,14 @@ class Bug2:
         u_obstacle_dist_stab = self.obstacle_dist_stab_PID.output(obstacle_dist)
         u_obstacle_follower = self.obstacle_follower_PID.output(delta)
 
-        vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle, self.WHEEL_SPEED + u_obstacle_follower + u_obstacle_dist_stab - (1 - self.detect[4]), vrep.simx_opmode_streaming)
+        vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  self.WHEEL_SPEED + u_obstacle_follower + u_obstacle_dist_stab - (1 - self.detect[4]), vrep.simx_opmode_streaming)
         vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor_handle, self.WHEEL_SPEED - u_obstacle_follower - u_obstacle_dist_stab + (1 - self.detect[4]), vrep.simx_opmode_streaming)
 
     def tick(self):
         time.sleep(self.SLEEP_TIME)
 
-
+    def distance_between(self, botPos, targetPost):
+        return math.sqrt((botPos.x - targetPost.x) ** 2 + (botPos.y - targetPost.y) ** 2)
 
 ####################################################
 
