@@ -44,7 +44,8 @@ class Bug2:
         self.targetPos = None
         self.botEulerAngles = None
 
-        self.rounding_diff_dist = None
+        self.start_target_pos = None
+        self.start_bot_pos = None
 
         self.detect = np.zeros(16)
 
@@ -175,6 +176,11 @@ class Bug2:
 
             self.botEulerAngles = Vector3(x=self.bot_euler_angles[0], y=self.bot_euler_angles[1], z=self.bot_euler_angles[2])
 
+            if self.start_bot_pos is None:
+                self.start_bot_pos = self.botPos
+            if self.start_target_pos is None:
+                self.start_target_pos = self.targetPos
+
             self.read_from_sensors()
 
             self.targetPos.z = self.botPos.z = 0.0
@@ -221,16 +227,7 @@ class Bug2:
 
     def action_rounding(self):
 
-        tmp_dir = Quaternion()
-        tmp_dir.set_from_vector(PI / 2.0, Vector3(0.0, 0.0, 1.0))
-        perp_bot_dir = tmp_dir.rotate(self.botDir)
-
-        angle = self.angle_between_vectors(perp_bot_dir, self.targetPos.minus(self.botPos))
-
-        print(self.distance_between_points(self.botPos, self.targetPos))
-        if self.rounding_diff_dist is None or self.rounding_diff_dist <= self.distance_between_points(self.botPos, self.targetPos):
-            self.rounding_diff_dist = self.distance_between_points(self.botPos, self.targetPos)
-        elif math.fabs(angle) < 5.0 / 180.0 * PI:
+        if self.is_bot_on_the_constant_direction():
             self.state = State.MOVING
             return
 
@@ -250,8 +247,17 @@ class Bug2:
     def tick(self):
         time.sleep(self.SLEEP_TIME)
 
-    def distance_between_points(self, pos_1, pos_2):
-        return math.sqrt((pos_1.x - pos_2.x) ** 2 + (pos_1.y - pos_2.y) ** 2)
+    def distance_between(self, botPos, targetPost):
+        return math.sqrt((botPos.x - targetPost.x) ** 2 + (botPos.y - targetPost.y) ** 2)
+
+    def is_bot_on_the_constant_direction(self):
+        # (x-x1)/(x2-x1) = (y-y1)/(y2-y1).
+        diff_x = (self.botPos.x - self.start_bot_pos.x) / (self.start_target_pos.x - self.start_bot_pos.x)
+        diff_y = (self.botPos.y - self.start_bot_pos.y) / (self.start_target_pos.y - self.start_bot_pos.y)
+        delta = 0.01
+        if diff_x - delta < diff_y < diff_x + delta:
+            return True
+        return False
 
 ####################################################
 
