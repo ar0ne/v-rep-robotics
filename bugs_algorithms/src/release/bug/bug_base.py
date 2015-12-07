@@ -34,10 +34,10 @@ class BugBase:
         self.obstacle_dist_stab_PID = None
         self.obstacle_follower_PID = None
 
-        self.targetDir = None
-        self.botDir = None
-        self.botPos = None
-        self.targetPos = None
+        self.target_dir = np.zeros(3)
+        self.bot_dir = None
+        self.bot_pos = None
+        self.target_pos = None
         self.botEulerAngles = None
 
         self.detect = np.zeros(16)
@@ -45,6 +45,11 @@ class BugBase:
         self._init_client_id()
         self._init_handles()
         self._init_sensor_handles()
+
+        self.obstacle_dist_stab_PID = PIDController(50.0)
+        self.obstacle_follower_PID = PIDController(50.0)
+        self.obstacle_dist_stab_PID.set_coefficients(2, 0, 0.5)
+        self.obstacle_follower_PID.set_coefficients(2, 0, 0)
 
     def _init_client_id(self):
         vrep.simxFinish(-1)
@@ -68,13 +73,11 @@ class BugBase:
 
     def _init_robot_handle(self):
         # handle of robot
-        error_code, self.bot_handle = vrep.simxGetObjectHandle(self.client_id, self.BOT_NAME,
-                                                               vrep.simx_opmode_oneshot_wait)
+        error_code, self.bot_handle = vrep.simxGetObjectHandle(self.client_id, self.BOT_NAME, vrep.simx_opmode_oneshot_wait)
 
     def _init_target_handle(self):
         # get handle of target robot
-        error_code, self.target_handle = vrep.simxGetObjectHandle(self.client_id, self.TARGET_NAME,
-                                                                  vrep.simx_opmode_oneshot_wait)
+        error_code, self.target_handle = vrep.simxGetObjectHandle(self.client_id, self.TARGET_NAME, vrep.simx_opmode_oneshot_wait)
 
     def _init_wheels_handle(self):
         # get handles of robot wheels
@@ -95,25 +98,22 @@ class BugBase:
 
     def _init_values(self):
 
-        error_code, self.target_pos = vrep.simxGetObjectPosition(self.client_id, self.target_handle, -1,
-                                                                 vrep.simx_opmode_oneshot)
+        error_code, _ = vrep.simxGetObjectPosition(self.client_id, self.target_handle, -1, vrep.simx_opmode_oneshot)
 
-        error_code, self.bot_pos = vrep.simxGetObjectPosition(self.client_id, self.bot_handle, -1,
-                                                              vrep.simx_opmode_oneshot)
+        error_code, _ = vrep.simxGetObjectPosition(self.client_id, self.bot_handle, -1, vrep.simx_opmode_oneshot)
 
-        error_code, self.bot_euler_angles = vrep.simxGetObjectOrientation(self.client_id, self.bot_handle, -1,
-                                                                          vrep.simx_opmode_streaming)
+        error_code, _ = vrep.simxGetObjectOrientation(self.client_id, self.bot_handle, -1, vrep.simx_opmode_streaming)
 
     def read_values(self):
 
-        error_code, self.target_pos = vrep.simxGetObjectPosition(self.client_id, self.target_handle, -1,
-                                                                 vrep.simx_opmode_streaming)
+        error_code, target_pos = vrep.simxGetObjectPosition(self.client_id, self.target_handle, -1, vrep.simx_opmode_streaming)
+        self.target_pos = Vector3(x=target_pos[0], y=target_pos[1], z=target_pos[2])
 
-        error_code, self.bot_pos = vrep.simxGetObjectPosition(self.client_id, self.bot_handle, -1,
-                                                              vrep.simx_opmode_streaming)
+        error_code, bot_pos = vrep.simxGetObjectPosition(self.client_id, self.bot_handle, -1, vrep.simx_opmode_streaming)
+        self.bot_pos = Vector3(x=bot_pos[0], y=bot_pos[1], z=bot_pos[2])
 
-        error_code, self.bot_euler_angles = vrep.simxGetObjectOrientation(self.client_id, self.bot_handle, -1,
-                                                                          vrep.simx_opmode_streaming)
+        error_code, bot_euler_angles = vrep.simxGetObjectOrientation(self.client_id, self.bot_handle, -1, vrep.simx_opmode_streaming)
+        self.bot_euler_angles = Vector3(x=bot_euler_angles[0], y=bot_euler_angles[1], z=bot_euler_angles[2])
 
     def stop_move(self):
         error_code = vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  0, vrep.simx_opmode_streaming)

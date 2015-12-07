@@ -7,9 +7,9 @@ from bug import *
 
 if __name__ == '__main__':
 
-    bug1 = Bug1()
-    bug1.loop()
+    # bug1 = Bug1()
+    # bug1.loop()
 
-    # bug2 = Bug2()
-    # bug2.loop()
+    bug2 = Bug2()
+    bug2.loop()
 

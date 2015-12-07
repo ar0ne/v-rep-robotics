@@ -4,7 +4,6 @@ __author__ = 'ar1'
 
 import vrep
 import time
-import numpy as np
 
 from bug_base import BugBase
 from libs import *
@@ -19,13 +18,6 @@ class Bug1(BugBase):
 
         self._init_values()
 
-        self.obstacle_dist_stab_PID = PIDController(50.0)
-        self.obstacle_follower_PID = PIDController(50.0)
-        self.obstacle_dist_stab_PID.setCoefficients(2, 0, 0.5)
-        self.obstacle_follower_PID.setCoefficients(2, 0, 0)
-
-        self.targetDir = np.zeros(3)
-
         while True:
 
             self.tick()
@@ -33,18 +25,13 @@ class Bug1(BugBase):
             self.stop_move()
             self.read_values()
 
-            self.targetPos = Vector3(x=self.target_pos[0], y=self.target_pos[1], z=self.target_pos[2])
-
-            self.botPos = Vector3(x=self.bot_pos[0], y=self.bot_pos[1], z=self.bot_pos[2])
-
-            self.botEulerAngles = Vector3(x=self.bot_euler_angles[0], y=self.bot_euler_angles[1], z=self.bot_euler_angles[2])
-
             self.read_from_sensors()
 
-            self.targetPos.z = self.botPos.z = 0.0
-            qRot = Quaternion()
-            qRot.set_from_vector(self.botEulerAngles.z, Vector3(0.0, 0.0, 1.0))
-            self.botDir = qRot.rotate(Vector3(1.0, 0.0, 0.0))
+            self.target_pos.z = self.bot_pos.z = 0.0
+
+            q_rot = Quaternion()
+            q_rot.set_from_vector(self.bot_euler_angles.z, Vector3(0.0, 0.0, 1.0))
+            self.bot_dir = q_rot.rotate(Vector3(1.0, 0.0, 0.0))
 
             if self.state == States.MOVING:
                 self.action_moving()
@@ -60,11 +47,11 @@ class Bug1(BugBase):
             self.state = States.ROTATING
             tmp = Quaternion()
             tmp.set_from_vector(self.PI / 2.0, Vector3(0.0, 0.0, 1.0))
-            self.targetDir = tmp.rotate(self.botDir)
+            self.target_dir = tmp.rotate(self.bot_dir)
 
             return
 
-        angle = Utils.angle_between_vectors(self.botDir, self.targetPos.minus(self.botPos))
+        angle = Utils.angle_between_vectors(self.bot_dir, self.target_pos.minus(self.bot_pos))
 
         if math.fabs(angle) > 1.0 / 180.0 * self.PI:
             vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  self.WHEEL_SPEED + angle, vrep.simx_opmode_streaming)
@@ -75,7 +62,7 @@ class Bug1(BugBase):
 
     def action_rotating(self):
 
-        angle = Utils.angle_between_vectors(self.botDir, self.targetDir)
+        angle = Utils.angle_between_vectors(self.bot_dir, self.target_dir)
 
         if math.fabs(angle) > 5.0 / 180.0 * self.PI:
             vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,   angle, vrep.simx_opmode_streaming)
@@ -87,13 +74,12 @@ class Bug1(BugBase):
 
         tmp_dir = Quaternion()
         tmp_dir.set_from_vector(self.PI / 2.0, Vector3(0.0, 0.0, 1.0))
-        perp_bot_dir = tmp_dir.rotate(self.botDir)
+        perp_bot_dir = tmp_dir.rotate(self.bot_dir)
 
-        angle = Utils.angle_between_vectors(perp_bot_dir, self.targetPos.minus(self.botPos))
+        angle = Utils.angle_between_vectors(perp_bot_dir, self.target_pos.minus(self.bot_pos))
 
-        # print(self.distance_between(self.botPos, self.targetPos))
-        if self.rounding_diff_dist is None or self.rounding_diff_dist <= self.distance_between_points(self.botPos, self.targetPos):
-            self.rounding_diff_dist = self.distance_between_points(self.botPos, self.targetPos)
+        if self.rounding_diff_dist is None or self.rounding_diff_dist <= self.distance_between_points(self.bot_pos, self.target_pos):
+            self.rounding_diff_dist = self.distance_between_points(self.bot_pos, self.target_pos)
         elif math.fabs(angle) < 5.0 / 180.0 * self.PI:
             self.state = States.MOVING
             return
@@ -114,5 +100,6 @@ class Bug1(BugBase):
     def tick(self):
         time.sleep(self.SLEEP_TIME)
 
-    def distance_between_points(self, pos_1, pos_2):
+    @staticmethod
+    def distance_between_points(pos_1, pos_2):
         return math.sqrt((pos_1.x - pos_2.x) ** 2 + (pos_1.y - pos_2.y) ** 2)

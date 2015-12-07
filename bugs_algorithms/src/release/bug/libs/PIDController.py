@@ -3,19 +3,6 @@
 __author__ = 'ar1'
 
 
-class PID:
-    def __init__(self, p=0.0, i=0.0, d=0.0):
-        self.p = p
-        self.i = i
-        self.d = d
-
-class PIDSettings:
-    def __init__(self, Kp=0.0, Ki=0.0, Kd=0.0, maxI=0.0):
-        self.Kp = Kp
-        self.Ki = Ki
-        self.Kd = Kd
-        self.maxI = maxI
-
 class PIDController:
     def __init__(self, frequency):
         self.frequency = frequency
@@ -23,55 +10,24 @@ class PIDController:
         self.Ki = 0.0
         self.Kd = 0.0
         self.ePrev = 0.0
-        self.sumErr = 0.0
-        self.maxSumErr = 3.4028234664e+38
+        self.sum_err = 0.0
+        self.max_sum_err = 3.4028234664e+38
         self.p = 0.0
         self.i = 0.0
         self.d = 0.0
 
-    def setCoefficients(self, Kp, Ki, Kd ):
-
+    def set_coefficients(self, Kp, Ki, Kd ):
         self.Kp = Kp
         self.Ki = Ki / self.frequency
         self.Kd = Kd * self.frequency
 
-    def setMaxI(self, maxSumErr ):
-        self.maxSumErr = maxSumErr
-
-    def settings(self):
-
-        s = PIDSettings()
-        s.Kp = self.Kp
-        s.Ki = self.Ki * self.frequency
-        s.Kd = self.Kd / self.frequency
-        s.maxI = self.maxSumErr
-
-        return s
-
-    def output(self, currentErr):
-
-        self.sumErr += currentErr
-        if self.sumErr > self.maxSumErr:
-            self.sumErr = self.maxSumErr
-        self.p = self.Kp * currentErr
-        self.i = self.Ki * self.sumErr
-        self.d = self.Kd * ( currentErr - self.ePrev )
+    def output(self, current_err):
+        self.sum_err += current_err
+        if self.sum_err > self.max_sum_err:
+            self.sum_err = self.max_sum_err
+        self.p = self.Kp * current_err
+        self.i = self.Ki * self.sum_err
+        self.d = self.Kd * (current_err - self.ePrev)
         u = self.p + self.i + self.d
-        self.ePrev = currentErr
-
+        self.ePrev = current_err
         return u
-
-    def currentPID(self):
-
-        pid = PID()
-        pid.p = self.p
-        pid.i = self.i
-        pid.d = self.d
-
-        return pid
-
-    def reset(self):
-
-        self.ePrev = 0.0
-        self.sumErr = 0.0
-        self.p = self.i = self.d = 0.0
