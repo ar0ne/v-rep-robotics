@@ -7,7 +7,7 @@ import time
 import numpy as np
 import math
 
-from src.dev import vrep
+from .. import vrep
 
 PI = math.pi
 

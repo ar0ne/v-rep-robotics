@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'ar1'
 
-from Matrix3 import *
-from Vector3 import *
-from EulerAngles import *
+from libs.Matrix3 import *
+from libs.Vector3 import *
+from libs.EulerAngles import *
 
 class Quaternion:
     def __init__(self, w=1.0, x=0.0, y=0.0, z=0.0):

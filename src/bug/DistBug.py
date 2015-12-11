@@ -2,17 +2,14 @@
 # -*- coding: utf-8 -*-
 __author__ = 'ar1'
 
-import time
-import vrep
-
-from BugBase import BugBase
-from libs import *
+from BugBase import *
 
 
 class DistBug(BugBase):
     def __init__(self, target_name='target', bot_name='Bot', wheel_speed=1.0):
         BugBase.__init__(self, target_name, bot_name, wheel_speed)
         self.rounding_diff_dist = None
+        self.about = "Algorithm Dist-Bug"
 
     def loop(self):
 

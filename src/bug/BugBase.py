@@ -5,8 +5,8 @@ __author__ = 'ar1'
 import time
 import sys
 import numpy as np
-import vrep
 
+import vrep
 from libs import *
 
 
@@ -46,6 +46,8 @@ class BugBase:
         self.obstacle_follower_PID = PIDController(50.0)
         self.obstacle_dist_stab_PID.set_coefficients(2, 0, 0.5)
         self.obstacle_follower_PID.set_coefficients(2, 0, 0)
+
+        self.about = ''
 
     def _init_client_id(self):
         vrep.simxFinish(-1)
@@ -120,7 +122,7 @@ class BugBase:
 
             error_code, detection_state, detected_point, detected_object_handle, detected_surface_normal_vector = vrep.simxReadProximitySensor(self.client_id, self.sensor_handles[i], vrep.simx_opmode_streaming)
 
-            dist = math.sqrt(np.sum(np.array(detected_point) ** 2))
+            dist = math.sqrt(detected_point[0] ** 2 + detected_point[1] ** 2 + detected_point[2] ** 2)
 
             if dist < self.MIN_DETECTION_DIST:
                 self.detect[i] = self.MIN_DETECTION_DIST
@@ -128,6 +130,9 @@ class BugBase:
                 self.detect[i] = self.MAX_DETECTION_DIST
             else:
                 self.detect[i] = self.MAX_DETECTION_DIST - ((dist - self.MAX_DETECTION_DIST) / (self.MIN_DETECTION_DIST - self.MAX_DETECTION_DIST))
+
+    def print_about_info(self):
+        print("Algorithm: {0}\nTarget name: {1}\nBot name: {2}\nSpeed of wheel: {3}".format(self.about, self.TARGET_NAME, self.BOT_NAME, self.WHEEL_SPEED))
 
     def tick(self):
         time.sleep(self.SLEEP_TIME)

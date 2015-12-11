@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'ar1'
 
-import vrep
-
-from BugBase import BugBase
-from libs import *
+from BugBase import *
 
 
 class Bug2(BugBase):
@@ -13,6 +10,7 @@ class Bug2(BugBase):
         BugBase.__init__(self, target_name, bot_name, wheel_speed)
         self.start_target_pos = None
         self.start_bot_pos = None
+        self.about = "Algorithm Bug2"
 
     def loop(self):
 

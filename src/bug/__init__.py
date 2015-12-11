@@ -5,6 +5,5 @@ __author__ = 'ar1'
 from BugBase import *
 from DistBug import *
 from Bug2 import *
+from Bug1 import *
 
-from libs import *
-from vrep import *
