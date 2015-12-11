@@ -3,6 +3,8 @@
 __author__ = 'ar1'
 
 import math
+from Vector3 import Vector3
+from Quaternion import Quaternion
 
 
 class Matrix3:
