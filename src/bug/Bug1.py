@@ -9,5 +9,7 @@ class Bug1(BugBase):
         BugBase.__init__(self, target_name, bot_name, wheel_speed)
         self.about = "Algorithm Bug1"
 
+        self.print_about_info()
+
     def loop(self):
         pass

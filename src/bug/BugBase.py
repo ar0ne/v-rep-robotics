@@ -36,6 +36,9 @@ class BugBase:
         self.target_pos = None
         self.target_dir = np.zeros(3)
 
+        self.track_length = 0.0
+        self.prev_pos = None
+
         self.detect = np.zeros(16)
 
         self._init_client_id()
@@ -133,6 +136,16 @@ class BugBase:
 
     def print_about_info(self):
         print("Algorithm: {0}\nTarget name: {1}\nBot name: {2}\nSpeed of wheel: {3}".format(self.about, self.TARGET_NAME, self.BOT_NAME, self.WHEEL_SPEED))
+
+    def calc_lenght_of_robot_track(self):
+
+        if self.prev_pos is None:
+            self.prev_pos = self.bot_pos
+
+        self.track_length += Utils.distance_between_points(self.prev_pos, self.bot_pos)
+        self.prev_pos = self.bot_pos
+
+        print(self.track_length)
 
     def tick(self):
         time.sleep(self.SLEEP_TIME)

@@ -11,6 +11,8 @@ class DistBug(BugBase):
         self.rounding_diff_dist = None
         self.about = "Algorithm Dist-Bug"
 
+        self.print_about_info()
+
     def loop(self):
 
         self._init_values()
@@ -21,6 +23,8 @@ class DistBug(BugBase):
 
             self.stop_move()
             self.read_values()
+
+            self.calc_lenght_of_robot_track()
 
             self.read_from_sensors()
 
@@ -75,8 +79,8 @@ class DistBug(BugBase):
 
         angle = Utils.angle_between_vectors(perp_bot_dir, self.target_pos.minus(self.bot_pos))
 
-        if self.rounding_diff_dist is None or self.rounding_diff_dist <= self.distance_between_points(self.bot_pos, self.target_pos):
-            self.rounding_diff_dist = self.distance_between_points(self.bot_pos, self.target_pos)
+        if self.rounding_diff_dist is None or self.rounding_diff_dist <= Utils.distance_between_points(self.bot_pos, self.target_pos):
+            self.rounding_diff_dist = Utils.distance_between_points(self.bot_pos, self.target_pos)
         elif math.fabs(angle) < 5.0 / 180.0 * self.PI:
             self.state = States.MOVING
             return
@@ -94,7 +98,3 @@ class DistBug(BugBase):
         vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor_handle,  self.WHEEL_SPEED + u_obstacle_follower + u_obstacle_dist_stab - (1 - self.detect[4]), vrep.simx_opmode_streaming)
         vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor_handle, self.WHEEL_SPEED - u_obstacle_follower - u_obstacle_dist_stab + (1 - self.detect[4]), vrep.simx_opmode_streaming)
 
-
-    @staticmethod
-    def distance_between_points(pos_1, pos_2):
-        return math.sqrt((pos_1.x - pos_2.x) ** 2 + (pos_1.y - pos_2.y) ** 2)

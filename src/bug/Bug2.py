@@ -12,6 +12,8 @@ class Bug2(BugBase):
         self.start_bot_pos = None
         self.about = "Algorithm Bug2"
 
+        self.print_about_info()
+
     def loop(self):
 
         self._init_values()
@@ -22,6 +24,8 @@ class Bug2(BugBase):
 
             self.stop_move()
             self.read_values()
+
+            self.calc_lenght_of_robot_track()
 
             if self.start_bot_pos is None:
                 self.start_bot_pos = self.bot_pos

@@ -38,7 +38,5 @@ if __name__ == '__main__':
         print("Something goes wrong!")
         exit(-2)
 
-    bug.print_about_info()
-
     bug.loop()
 
