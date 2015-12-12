@@ -8,7 +8,7 @@ from BugBase import *
 class DistBug(BugBase):
     def __init__(self, target_name='target', bot_name='Bot', wheel_speed=1.0):
         BugBase.__init__(self, target_name, bot_name, wheel_speed)
-        self.rounding_diff_dist = None
+        self.min_dist_to_target = None
         self.about = "Algorithm Dist-Bug"
 
         self.print_about_info()
@@ -24,7 +24,7 @@ class DistBug(BugBase):
             self.stop_move()
             self.read_values()
 
-            self.calc_lenght_of_robot_track()
+            # self.calc_lenght_of_robot_track()
 
             self.read_from_sensors()
 
@@ -79,8 +79,8 @@ class DistBug(BugBase):
 
         angle = Utils.angle_between_vectors(perp_bot_dir, self.target_pos.minus(self.bot_pos))
 
-        if self.rounding_diff_dist is None or self.rounding_diff_dist <= Utils.distance_between_points(self.bot_pos, self.target_pos):
-            self.rounding_diff_dist = Utils.distance_between_points(self.bot_pos, self.target_pos)
+        if self.min_dist_to_target is None or self.min_dist_to_target <= Utils.distance_between_points(self.bot_pos, self.target_pos):
+            self.min_dist_to_target = Utils.distance_between_points(self.bot_pos, self.target_pos)
         elif math.fabs(angle) < 5.0 / 180.0 * self.PI:
             self.state = States.MOVING
             return

@@ -25,7 +25,7 @@ class Bug2(BugBase):
             self.stop_move()
             self.read_values()
 
-            self.calc_lenght_of_robot_track()
+            # self.calc_lenght_of_robot_track()
 
             if self.start_bot_pos is None:
                 self.start_bot_pos = self.bot_pos
