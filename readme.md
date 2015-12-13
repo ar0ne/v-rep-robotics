@@ -1,8 +1,21 @@
 #Overview 
 
-This project is implementation of Bugs-algorithms for mobile robots in V-REP robot simulator.
+This project is implementation of Bug's algorithms for mobile robots in [V-REP robot simulator](http://coppeliarobotics.com/).
 
-You can see demo video [here](https://youtube.com/)
+You can see demo video in `/video` folder or on youtube:
+
+* Bug 1
+
+[![Bug 1 algorithm](http://img.youtube.com/vi/rEvZwQH-Fl8/0.jpg)](http://www.youtube.com/watch?v=rEvZwQH-Fl8)
+
+* Bug 2
+
+[![Bug 1 algorithm](http://img.youtube.com/vi/mgBjBiHSAn8/0.jpg)](http://www.youtube.com/watch?v=mgBjBiHSAn8)
+
+* Bug 3
+
+[![Bug 1 algorithm](http://img.youtube.com/vi/tzP2euz-MT4/0.jpg)](http://www.youtube.com/watch?v=tzP2euz-MT4)
+
 
 #How to use?
 
@@ -24,6 +37,7 @@ You can see demo video [here](https://youtube.com/)
     
     `remoteApi.so` - to folder with `main.py` script.
     
-    `vrep.py` and `vrepConst.py` - to folder `bug/vrep/`.
+    `vrep.py` and `vrepConst.py` - to folder `src/vrep/`.
     
-4. run `main.py`.
+4. run `$python main.py --help`.
+

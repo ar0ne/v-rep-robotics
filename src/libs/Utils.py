@@ -6,8 +6,8 @@ import math
 
 def angle_between_vectors(a, b):  # a -> b
 
-    a = a.unitVector()
-    b = b.unitVector()
+    a = a.unit_vector()
+    b = b.unit_vector()
     angle = math.acos(b.dot(a))
     if (a.multiply(b)).z > 0.0:
         return -angle

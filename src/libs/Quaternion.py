@@ -14,12 +14,12 @@ class Quaternion:
         self.z = z
 
     def set_from_vector(self, angle, dir):
-        halfAngle = angle / 2.0
-        sinHalfAngle = math.sin(halfAngle)
-        self.w = math.cos(halfAngle)
-        self.x = sinHalfAngle * dir.x
-        self.y = sinHalfAngle * dir.y
-        self.z = sinHalfAngle * dir.z
+        half_angle = angle / 2.0
+        sin_half_angle = math.sin(half_angle)
+        self.w = math.cos(half_angle)
+        self.x = sin_half_angle * dir.x
+        self.y = sin_half_angle * dir.y
+        self.z = sin_half_angle * dir.z
 
     def multiply(self, q):
         res = Quaternion()
@@ -84,8 +84,8 @@ class Quaternion:
         return res
 
     def rotate(self, v):
-        vectQuad = Quaternion(w=0.0, x=v.x, y=v.y, z=v.z)
-        q1 = self.multiply(vectQuad)
+        vect_quad = Quaternion(w=0.0, x=v.x, y=v.y, z=v.z)
+        q1 = self.multiply(vect_quad)
         res = q1.multiply(self.inverse())
         return Vector3(x=res.x, y=res.y, z=res.z)
 
@@ -118,13 +118,13 @@ class Quaternion:
 
         return matr
 
-    def toEulerAngles(self):
+    def to_euler_angles(self):
         angles = EulerAngles()
 
         norm = self.norm()
         test = self.x * self.y + self.z * self.w
-        absTest = math.fabs(test)
-        if absTest < 0.005 * norm:
+        abs_test = math.fabs(test)
+        if abs_test < 0.005 * norm:
             if test > 0:
                 # singularity at north pole
                 angles.yaw = -2.0 * math.atan2(self.x, self.w)

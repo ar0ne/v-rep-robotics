@@ -32,6 +32,6 @@ class Vector3:
     def length(self):
         return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
 
-    def unitVector(self):
+    def unit_vector(self):
         n = 1.0 / self.length()
         return Vector3(x=self.x * n, y=self.y * n, z=self.z * n)
