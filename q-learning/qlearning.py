@@ -15,11 +15,13 @@ class RL:
         self.alpha = alpha  # discount constant
         self.gamma = gamma  # learning rate
 
+        self.randomly = True
+
     def getQ(self, state, action):
         return self.q.get((state, action), 0.0)
 
     def chooseAction(self, state):  # get action using epsilon-greedy algorithm
-        if random.random() < self.epsilon:
+        if self.randomly and random.random() < self.epsilon:
             action = random.choice(self.actions)
         else:
             q = [self.getQ(state, a) for a in self.actions]

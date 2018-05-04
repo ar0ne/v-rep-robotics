@@ -9,7 +9,7 @@ import threading
 import qlearning
 from collections import namedtuple
 
-states = namedtuple('states', 'x y')
+states = namedtuple('states', 'l r')
 
 
 class LearningAgent(object):
@@ -29,7 +29,7 @@ class LearningAgent(object):
         self.t = 0
         self.flag = 0
         self.flag_prev = 0
-        self.deadline = 300
+        self.deadline = config.DEADLINE
         self.num_out_of_time = 0
         self.hit_wall_time = 0
         self.ok_time = 0
@@ -37,10 +37,10 @@ class LearningAgent(object):
         self.ai = qlearning.RL()
 
         parent_path = os.path.dirname(os.path.realpath(__file__))
-        data_path = os.path.join(parent_path, 'trainedData')
+        data_path = os.path.join(parent_path, config.DB_FOLDER)
         if not os.path.exists(data_path):
             os.makedirs(data_path)
-        self.data = os.path.join(data_path, 'data.pkl')
+        self.data = os.path.join(data_path, config.DB_NAME)
 
         if restore:
             if os.path.exists(self.data):
@@ -82,17 +82,25 @@ class LearningAgent(object):
                     if quit_flag or self.done:
                         break
 
-            print("Train {} done, saving Q table...".format(epi))
-            with open(self.data, 'wb') as f:
-                pickle.dump(self.ai.q, f, protocol=pickle.HIGHEST_PROTOCOL)
-            print("Success: {} / {}".format(self.ok_time, epi))
-            print("Collision: {} / {}".format(self.hit_wall_time, epi))
-            print("too far: {} / {}".format(self.far_time, epi))
-            print("Out of time: {} / {}".format(self.num_out_of_time, epi))
+            if epi % 5:
+                self.save_progress(epi)
+
+            self.show_statistics(epi)
 
             if self.ok_time > 300:
                 print("Is it enough?")
                 break
+
+    def show_statistics(self, epi):
+        print("Success: {} / {}".format(self.ok_time, epi + 1))
+        print("Collision: {} / {}".format(self.hit_wall_time, epi + 1))
+        print("too far: {} / {}".format(self.far_time, epi + 1))
+        print("Out of time: {} / {}".format(self.num_out_of_time, epi + 1))
+
+    def save_progress(self, epi):
+        print("Train {} done, saving Q table...".format(epi))
+        with open(self.data, 'wb') as f:
+            pickle.dump(self.ai.q, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def reset(self):
         self.state = None
@@ -112,11 +120,11 @@ class LearningAgent(object):
     def update(self):
         if self.state is None:
             s, self.flag = vrepInterface.get_ultra_distance()
-            self.state = states(x=s[0], y=s[1])
+            self.state = states(l=s[0], r=s[1])
             self.action = self.ai.chooseAction(self.state)
 
-        self.get_next_state()
-        self.get_reward()
+        self.next_state = self.get_next_state()
+        self.reward = self.get_reward()
 
         self.next_action = self.ai.chooseAction(self.next_state)
         self.ai.learn(self.state, self.action, self.reward, self.next_state)
@@ -135,33 +143,36 @@ class LearningAgent(object):
         self.action = self.next_action
 
     def get_next_state(self):
-        v_left = config.valid_actions_dict[self.action][0]
-        v_right = config.valid_actions_dict[self.action][1]
+        v_left, v_right = config.valid_actions_dict[self.action]
+
         vrepInterface.move_wheels(v_left, v_right)
+        vrepInterface.stop_motion()
+
         self.flag_prev = self.flag
         n_s, self.flag = vrepInterface.get_ultra_distance()
-        self.next_state = states(x=n_s[0], y=n_s[1])
+
+        return states(l=n_s[0], r=n_s[1])
 
     def get_reward(self):
-        collision = vrepInterface.if_collision()
-        if collision == 1:
-            self.hit_wall_time += collision
+        if vrepInterface.is_collided_with_wall():
+            self.hit_wall_time += 1
             self.done = True
-            self.reward = -100
-            return
-        reward_ref = vrepInterface.get_reward_distance()
-        if reward_ref < config.tolerance or vrepInterface.is_target_collided():
+            return -100
+        reward_distance = vrepInterface.get_reward_distance()
+        if reward_distance < config.tolerance or vrepInterface.is_collided_with_target():
             print("Success!")
             self.done = True
             self.ok_time += 1
-            self.reward = 100
-        elif reward_ref > 1.5 or self.state == states(x=-1.0, y=-1.0):
+            return 100
+        elif reward_distance >= config.MAX_DISTANCE or self.state == states(l=-1.0, r=-1.0):
             print("too far!")
             self.done = True
             self.far_time += 1
-            self.reward = -100
+            return -100
         else:
-            self.reward = 1. / reward_ref
+            # return -1.
+            # return 1. / reward_ref
+            return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
 
 
 if __name__ == '__main__':

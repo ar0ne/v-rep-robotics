@@ -57,26 +57,27 @@ def connect():
                  str(port) + '). Is V-REP running?')
     print('Connected to Remote API Server')  # show in the terminal
     show_msg('Python: Hello')  # show in the VREP
-    time.sleep(0.5)
+    time.sleep(config.SLEEP_TIME)
     return
+
 
 def start():
     """ Start the simulation (force stop and setup)"""
     stop()
     setup_devices()
     vrep.simxStartSimulation(clientID, ONESHOT)
-    time.sleep(0.5)
+    time.sleep(config.SLEEP_TIME)
     # Solve a rare bug in the simulator by repeating:
     setup_devices()
     vrep.simxStartSimulation(clientID, ONESHOT)
-    time.sleep(0.5)
+    time.sleep(config.SLEEP_TIME)
     return
 
 
 def stop():
     """ Stop the simulation """
     vrep.simxStopSimulation(clientID, ONESHOT)
-    time.sleep(0.5)
+    time.sleep(config.SLEEP_TIME)
 
 
 def setup_devices():
@@ -124,9 +125,8 @@ def setup_devices():
 
 def get_ultra_distance():
     """ return distances measured by ultrasonic sensors(m) """
-    global distance
+    global distance, flag
     state = [False, False]
-    global flag
     flag = 0
     for i, item in enumerate(ultraID):
         _, state[i], detectedPoint, _, _ = vrep.simxReadProximitySensor(clientID, item, BUFFER)
@@ -134,9 +134,7 @@ def get_ultra_distance():
             distance[i] = math.sqrt(detectedPoint[0] ** 2 + detectedPoint[1] ** 2 + detectedPoint[2] ** 2)
             # discretization
             distance[i] = np.floor((np.floor(distance[i] / (config.grid_width / 2)) + 1) / 2) * config.grid_width
-            distance[i] = "{0:.3f}".format(
-                round(distance[i], 3))  # round(distance[i], 3)  # avoid some strange numbers, eg: 0.35000000000000003
-            # print("ultra distance is ", distance[i]) # [debug]
+            distance[i] = "{0:.2f}".format(round(distance[i], config.PRECISION))
         else:
             distance[i] = -1
             flag = 1
@@ -145,47 +143,42 @@ def get_ultra_distance():
 
 def move_wheels(v_left, v_right):
     """ move the wheels. Input: Angular velocities in rad/s """
+    global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, v_left, STREAMING)
-    vrep.simxSetJointTargetVelocity(clientID, right_motorID, v_right,
-                                    STREAMING)
-    time.sleep(config.time_step)
-    return
+    vrep.simxSetJointTargetVelocity(clientID, right_motorID, v_right, STREAMING)
+    time.sleep(config.SLEEP_TIME)
 
 
 def get_reward_distance():
     """ return the reference distance for reward """
-    global reward_ref
+    global reward_ref, clientID
     res, reward_ref = vrep.simxReadDistance(clientID, rewardRefID, BUFFER)
-    # print(res) # [debug]
-    # if res == vrep.simx_return_ok:  # [debug]
-    #    print("vrep.simxReadDistance executed fine")
-    # print("reward distance is ",reward_ref)
     return reward_ref
 
 
 def stop_motion():
     """ stop the base wheels """
+    global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, 0, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, 0, STREAMING)
     return
 
 
-def if_collision():
+def is_collided_with_wall():
     """ judge if collision happens"""
     global clientID, left_collisionID, right_collisionID
     res, csl = vrep.simxReadCollision(clientID, left_collisionID, BUFFER)
     res, csr = vrep.simxReadCollision(clientID, right_collisionID, BUFFER)
-    collision = 0
     if csl:
         print("Collision with left wall!")
-        collision = 1
+        return True
     if csr:
         print("Collision with right wall!")
-        collision = 1
-    return collision
+        return True
+    return False
 
 
-def is_target_collided():
+def is_collided_with_target():
     global clientID, target_collisionID
     res, flag = vrep.simxReadCollision(clientID, target_collisionID, BUFFER)
     return flag
