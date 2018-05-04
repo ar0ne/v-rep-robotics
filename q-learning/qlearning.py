@@ -15,16 +15,15 @@ class RL:
         self.alpha = alpha  # discount constant
         self.gamma = gamma  # learning rate
 
-        self.randomly = True
+        self.randomize = False
 
     def getQ(self, state, action):
         return self.q.get((state, action), 0.0)
 
     def choose_next_action(self, state):  # get action using epsilon-greedy algorithm
-        if self.randomly and random.random() < self.epsilon:
+        if self.randomize and random.random() < self.epsilon:
             return random.choice(self.actions)
         else:
-            # TODO: add neighbour states
             possible_states = self.get_neighbours(state)
             q = []
             for act in self.actions:
@@ -39,16 +38,19 @@ class RL:
             count = [maxV[1] for maxV in q].count(max_q_v)
             if count > 1:
                 return random.choice([q[i][0] for i in range(len(q)) if q[i][1] == max_q_v])
-
-
             return [q[i][0] for i in range(len(q)) if max_q_v == q[i][1]][0]
-            # count = q.count(maxQ)
-            # # in case there're several state-action max values, we select a random one among them
-            # if count > 1:
-            #     best = [i for i in range(len(self.actions)) if q[i] == maxQ]
-            #     return self.actions[random.choice(best)]
-            # else:
-            #     return maxQ[1]
+
+    def choose_next_action_standart(self, state):
+        if self.randomize and random.random() < self.epsilon:
+            return random.choice(self.actions)
+        else:
+            q = [self.getQ(state, a) for a in self.actions]
+            maxQ = max(q)
+            count = q.count(maxQ)
+            if count > 1:
+                best = [i for i in range(len(self.actions)) if q[i] == maxQ]
+                return self.actions[random.choice(best)]
+            return self.actions[q.index(maxQ)]
 
     # after choosing action, the agent needs to interact with the environment to get reward and the next state
     # then it can update Q value

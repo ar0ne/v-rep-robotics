@@ -146,7 +146,7 @@ def move_wheels(v_left, v_right):
     global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, v_left, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, v_right, STREAMING)
-    time.sleep(config.SLEEP_TIME)
+    time.sleep(config.SLEEP_TIME / 2.)
 
 
 def get_reward_distance():

@@ -77,7 +77,7 @@ class LearningAgent(object):
                     if quit_flag or self.done:
                         break
 
-            if train_number % 10:
+            if train_number % 10 == 1:
                 self.save_progress(train_number)
 
             self.show_statistics(train_number)
