@@ -3,7 +3,7 @@
 
 import numpy as np
 
-n_episodes = 6000
+EPOCHS = 500
 restore = True
 alpha = 0.99
 gamma = 0.9

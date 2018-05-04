@@ -63,6 +63,7 @@ def connect():
 
 def start():
     """ Start the simulation (force stop and setup)"""
+    global clientID
     stop()
     setup_devices()
     vrep.simxStartSimulation(clientID, ONESHOT)
@@ -71,11 +72,11 @@ def start():
     setup_devices()
     vrep.simxStartSimulation(clientID, ONESHOT)
     time.sleep(config.SLEEP_TIME)
-    return
 
 
 def stop():
     """ Stop the simulation """
+    global clientID
     vrep.simxStopSimulation(clientID, ONESHOT)
     time.sleep(config.SLEEP_TIME)
 
@@ -120,7 +121,6 @@ def setup_devices():
     vrep.simxReadCollision(clientID, left_collisionID, STREAMING)
     vrep.simxReadCollision(clientID, right_collisionID, STREAMING)
     vrep.simxReadCollision(clientID, target_collisionID, STREAMING)
-    return
 
 
 def get_ultra_distance():

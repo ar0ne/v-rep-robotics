@@ -18,7 +18,6 @@ class LearningAgent(object):
         if sys.version_info[0] < 3:
             sys.exit("Sorry, Python 3 required")
 
-        self.n_episodes = config.n_episodes
         self.state = None
         self.action = None
         self.reward = 0.0
@@ -35,6 +34,7 @@ class LearningAgent(object):
         self.ok_time = 0
         self.far_time = 0
         self.ai = qlearning.RL()
+        self.epi = 0
 
         parent_path = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(parent_path, config.DB_FOLDER)
@@ -59,9 +59,9 @@ class LearningAgent(object):
             continue
 
     def train(self):
-        tick = 1
-        for epi in range(self.n_episodes):
-            print("Train #{}".format(epi))
+        epi = 1
+        while self.ok_time < config.EPOCHS:
+            print("Train #{}".format(self.epi))
             vrepInterface.start()
             self.reset()
             self.done = False
@@ -73,8 +73,8 @@ class LearningAgent(object):
                     self.step()
 
                     # Update the learning rate
-                    self.ai.alpha = pow(tick, -0.1)
-                    tick += 1
+                    self.ai.alpha = pow(epi, -0.1)
+                    epi += 1
 
                 except KeyboardInterrupt:
                     quit_flag = True
@@ -82,14 +82,11 @@ class LearningAgent(object):
                     if quit_flag or self.done:
                         break
 
-            if epi % 5:
+            if epi % 10:
                 self.save_progress(epi)
 
             self.show_statistics(epi)
 
-            if self.ok_time > 300:
-                print("Is it enough?")
-                break
 
     def show_statistics(self, epi):
         print("Success: {} / {}".format(self.ok_time, epi + 1))
@@ -108,26 +105,34 @@ class LearningAgent(object):
         self.reward = None
 
     def step(self):
+
         self.update()
+
         if self.done:
             return
+
         if self.t >= self.deadline:
             print("Agent ran out of time limit!")
             self.done = True
             self.num_out_of_time += 1
+
         self.t += 1
 
     def update(self):
+
         if self.state is None:
             s, self.flag = vrepInterface.get_ultra_distance()
             self.state = states(l=s[0], r=s[1])
-            self.action = self.ai.chooseAction(self.state)
+            self.action = self.ai.choose_next_action(self.state)
 
         self.next_state = self.get_next_state()
         self.reward = self.get_reward()
 
-        self.next_action = self.ai.chooseAction(self.next_state)
-        self.ai.learn(self.state, self.action, self.reward, self.next_state)
+        self.next_action = self.ai.choose_next_action(self.next_state)
+
+        updated_q = self.ai.get_updated_q(self.state, self.action, self.reward, self.next_state)
+
+        self.ai.q[(self.state, self.action)] = updated_q
 
         print("step = {}, state = {}, action = {}, next_action = {}, reward = {}".format(self.t, self.state,
                                                                                          self.action, self.next_action,
@@ -143,9 +148,9 @@ class LearningAgent(object):
         self.action = self.next_action
 
     def get_next_state(self):
-        v_left, v_right = config.valid_actions_dict[self.action]
+        speed_left, speed_right = config.valid_actions_dict[self.action]
 
-        vrepInterface.move_wheels(v_left, v_right)
+        vrepInterface.move_wheels(speed_left, speed_right)
         vrepInterface.stop_motion()
 
         self.flag_prev = self.flag
