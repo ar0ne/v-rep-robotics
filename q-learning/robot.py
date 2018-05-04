@@ -59,9 +59,9 @@ class LearningAgent(object):
             continue
 
     def train(self):
-        epi = 1
+        train_number = 1
         while self.ok_time < config.EPOCHS:
-            print("Train #{}".format(self.epi))
+            print("Train #{}".format(train_number))
             vrepInterface.start()
             self.reset()
             self.done = False
@@ -71,28 +71,27 @@ class LearningAgent(object):
                 quit_flag = False
                 try:
                     self.step()
-
-                    # Update the learning rate
-                    self.ai.alpha = pow(epi, -0.1)
-                    epi += 1
-
                 except KeyboardInterrupt:
                     quit_flag = True
                 finally:
                     if quit_flag or self.done:
                         break
 
-            if epi % 10:
-                self.save_progress(epi)
+            if train_number % 10:
+                self.save_progress(train_number)
 
-            self.show_statistics(epi)
+            self.show_statistics(train_number)
 
+            train_number += 1
+
+            # Update the learning rate
+            self.ai.alpha = pow(train_number, -0.1)
 
     def show_statistics(self, epi):
-        print("Success: {} / {}".format(self.ok_time, epi + 1))
-        print("Collision: {} / {}".format(self.hit_wall_time, epi + 1))
-        print("too far: {} / {}".format(self.far_time, epi + 1))
-        print("Out of time: {} / {}".format(self.num_out_of_time, epi + 1))
+        print("Success: {} / {}".format(self.ok_time, epi))
+        print("Collision: {} / {}".format(self.hit_wall_time, epi))
+        print("too far: {} / {}".format(self.far_time, epi))
+        print("Out of time: {} / {}".format(self.num_out_of_time, epi))
 
     def save_progress(self, epi):
         print("Train {} done, saving Q table...".format(epi))

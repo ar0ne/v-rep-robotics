@@ -4,7 +4,7 @@
 
 import random
 import config
-
+from itertools import product
 
 class RL:
     def __init__(self, actions=config.valid_actions, epsilon=config.epsilon, alpha=config.alpha, gamma=config.gamma):
@@ -25,15 +25,30 @@ class RL:
             return random.choice(self.actions)
         else:
             # TODO: add neighbour states
-            q = [self.getQ(state, a) for a in self.actions]
-            maxQ = max(q)
-            count = q.count(maxQ)
-            # in case there're several state-action max values, we select a random one among them
+            possible_states = self.get_neighbours(state)
+            q = []
+            for act in self.actions:
+                vs = []
+                for st in possible_states:
+                    value = self.getQ(st, act)
+                    vs.append(value)
+                max_v = max(vs)
+                q.append((act, max_v))
+
+            max_q_v = max([q[i][1] for i in range(len(q))])
+            count = [maxV[1] for maxV in q].count(max_q_v)
             if count > 1:
-                best = [i for i in range(len(self.actions)) if q[i] == maxQ]
-                return self.actions[random.choice(best)]
-            else:
-                return self.actions[q.index(maxQ)]
+                return random.choice([q[i][0] for i in range(len(q)) if q[i][1] == max_q_v])
+
+
+            return [q[i][0] for i in range(len(q)) if max_q_v == q[i][1]][0]
+            # count = q.count(maxQ)
+            # # in case there're several state-action max values, we select a random one among them
+            # if count > 1:
+            #     best = [i for i in range(len(self.actions)) if q[i] == maxQ]
+            #     return self.actions[random.choice(best)]
+            # else:
+            #     return maxQ[1]
 
     # after choosing action, the agent needs to interact with the environment to get reward and the next state
     # then it can update Q value
@@ -49,3 +64,12 @@ class RL:
     def get_max_q(self, next_state):
         """get the Q value of s' according to greedy algorithm."""
         return max([self.getQ(next_state, a) for a in self.actions])
+
+    def get_neighbours(self, state):
+        steps = [x * 0.01 for x in range(-1, 2)]
+        l_states = [state.l + st for st in steps]
+        r_states = [state.r + st for st in steps]
+        res = []
+        for pair in product(l_states, r_states):
+            res.append(pair)
+        return res
