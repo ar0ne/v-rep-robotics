@@ -22,7 +22,7 @@ valid_actions_dict = {valid_actions[0]: np.array([SPEED, SPEED]),
 tolerance = 0.05
 grid_width = 0.002
 
-MAX_DISTANCE = 1.2
+MAX_DISTANCE = 1.5
 
 DEADLINE = 100
 

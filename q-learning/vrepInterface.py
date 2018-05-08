@@ -146,7 +146,7 @@ def move_wheels(v_left, v_right):
     global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, v_left, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, v_right, STREAMING)
-    time.sleep(config.SLEEP_TIME / 2.)
+    time.sleep(config.SLEEP_TIME)
 
 
 def get_reward_distance():
@@ -161,7 +161,7 @@ def stop_motion():
     global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, 0, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, 0, STREAMING)
-    return
+    time.sleep(config.SLEEP_TIME)
 
 
 def is_collided_with_wall():

@@ -52,15 +52,11 @@ class RL:
                 return self.actions[random.choice(best)]
             return self.actions[q.index(maxQ)]
 
-    # after choosing action, the agent needs to interact with the environment to get reward and the next state
-    # then it can update Q value
-    def get_updated_q(self, last_state, last_action, reward, new_state):  # update Q value according to reward and new state
+    def get_updated_q(self, last_state, last_action, reward, new_state):
         '''
-        Q-learning:
             Q(s, a) += alpha * (reward(s,a) + gamma * maxQ(s') - Q(s,a))
         '''
         oldq = self.getQ(last_state, last_action)
-
         return oldq + self.alpha * (reward + self.gamma * self.get_max_q(new_state) - oldq)
 
     def get_max_q(self, next_state):

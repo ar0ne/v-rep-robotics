@@ -35,6 +35,7 @@ class LearningAgent(object):
         self.far_time = 0
         self.ai = qlearning.RL()
         self.epi = 0
+        self.is_collision_detected = False
 
         parent_path = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(parent_path, config.DB_FOLDER)
@@ -150,6 +151,7 @@ class LearningAgent(object):
         speed_left, speed_right = config.valid_actions_dict[self.action]
 
         vrepInterface.move_wheels(speed_left, speed_right)
+        self.check_for_collision()
         vrepInterface.stop_motion()
 
         self.flag_prev = self.flag
@@ -157,10 +159,15 @@ class LearningAgent(object):
 
         return states(l=n_s[0], r=n_s[1])
 
+    def check_for_collision(self):
+        if not self.is_collision_detected and vrepInterface.is_collided_with_wall():
+            self.is_collision_detected = True
+
     def get_reward(self):
-        if vrepInterface.is_collided_with_wall():
+        if self.is_collision_detected:
             self.hit_wall_time += 1
             self.done = True
+            self.is_collision_detected = False
             return -100
         reward_distance = vrepInterface.get_reward_distance()
         if reward_distance < config.tolerance or vrepInterface.is_collided_with_target():
@@ -176,6 +183,7 @@ class LearningAgent(object):
         else:
             # return -1.
             # return 1. / reward_ref
+            # return - (1 - ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE)
             return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
 
 
