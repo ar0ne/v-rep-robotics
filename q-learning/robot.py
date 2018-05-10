@@ -150,9 +150,11 @@ class LearningAgent(object):
     def get_next_state(self):
         speed_left, speed_right = config.valid_actions_dict[self.action]
 
+        self.check_for_collision()
         vrepInterface.move_wheels(speed_left, speed_right)
         self.check_for_collision()
         vrepInterface.stop_motion()
+        self.check_for_collision()
 
         self.flag_prev = self.flag
         n_s, self.flag = vrepInterface.get_ultra_distance()
@@ -181,10 +183,10 @@ class LearningAgent(object):
             self.far_time += 1
             return -100
         else:
-            # return -1.
+            return -1.
             # return 1. / reward_ref
             # return - (1 - ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE)
-            return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
+            # return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
 
 
 if __name__ == '__main__':

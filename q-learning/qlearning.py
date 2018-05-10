@@ -4,7 +4,6 @@
 
 import random
 import config
-from itertools import product
 
 class RL:
     def __init__(self, actions=config.valid_actions, epsilon=config.epsilon, alpha=config.alpha, gamma=config.gamma):
@@ -15,22 +14,19 @@ class RL:
         self.alpha = alpha  # discount constant
         self.gamma = gamma  # learning rate
 
-        self.randomize = False
+        self.randomize = config.RANDOM_ACTIIVE
 
     def getQ(self, state, action):
         return self.q.get((state, action), 0.0)
 
-    def choose_next_action(self, state):  # get action using epsilon-greedy algorithm
+    def choose_next_action2(self, state):  # get action using epsilon-greedy algorithm
         if self.randomize and random.random() < self.epsilon:
             return random.choice(self.actions)
         else:
-            possible_states = self.get_neighbours(state)
+            possible_states = self.get_neighbours(state.l, state.r)
             q = []
             for act in self.actions:
-                vs = []
-                for st in possible_states:
-                    value = self.getQ(st, act)
-                    vs.append(value)
+                vs = [self.getQ(st, act) for st in possible_states]
                 max_v = max(vs)
                 q.append((act, max_v))
 
@@ -40,7 +36,7 @@ class RL:
                 return random.choice([q[i][0] for i in range(len(q)) if q[i][1] == max_q_v])
             return [q[i][0] for i in range(len(q)) if max_q_v == q[i][1]][0]
 
-    def choose_next_action_standart(self, state):
+    def choose_next_action(self, state):
         if self.randomize and random.random() < self.epsilon:
             return random.choice(self.actions)
         else:
@@ -63,11 +59,12 @@ class RL:
         """get the Q value of s' according to greedy algorithm."""
         return max([self.getQ(next_state, a) for a in self.actions])
 
-    def get_neighbours(self, state):
-        steps = [x * 0.01 for x in range(-1, 2)]
-        l_states = [state.l + st for st in steps]
-        r_states = [state.r + st for st in steps]
-        res = []
-        for pair in product(l_states, r_states):
-            res.append(pair)
-        return res
+    def get_neighbours(self, l, r):
+        delta = 0.01
+        return [
+            (l - delta, r),
+            (l + delta, r),
+            (l, r),
+            (l, r + delta),
+            (l, r - delta),
+        ]

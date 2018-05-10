@@ -28,8 +28,12 @@ goalID = -1
 left_motorID = -1
 right_motorID = -1
 clientID = -1
-left_collisionID = -1
-right_collisionID = -1
+
+wall0_collisionID = -1
+wall1_collisionID = -1
+wall2_collisionID = -1
+wall3_collisionID = -1
+
 target_collisionID = -1
 
 distance = np.full(config.n_ultra, -1, dtype=np.float64)  # distance from ultrasonic sensors
@@ -83,7 +87,7 @@ def stop():
 
 def setup_devices():
     """ Assign the devices from the simulator to specific IDs """
-    global robotID, left_motorID, right_motorID, ultraID, rewardRefID, goalID, left_collisionID, right_collisionID, target_collisionID
+    global robotID, left_motorID, right_motorID, ultraID, rewardRefID, goalID, wall0_collisionID, wall1_collisionID, wall2_collisionID, wall3_collisionID, target_collisionID
     # res: result (1(OK), -1(error), 0(not called))
     # robot
     res, robotID = vrep.simxGetObjectHandle(clientID, 'robot#', WAIT)
@@ -101,9 +105,11 @@ def setup_devices():
     # goal reference object
     res, goalID = vrep.simxGetObjectHandle(clientID, 'Dummy#', WAIT)
     # collision object
-    res, left_collisionID = vrep.simxGetCollisionHandle(clientID, "leftCollision#", BLOCKING)
-    res, right_collisionID = vrep.simxGetCollisionHandle(clientID, "rightCollision#", BLOCKING)
     res, target_collisionID = vrep.simxGetCollisionHandle(clientID, "targetCollision#", BLOCKING)
+    res, wall0_collisionID = vrep.simxGetCollisionHandle(clientID, "wall0#", BLOCKING)
+    res, wall1_collisionID = vrep.simxGetCollisionHandle(clientID, "wall1#", BLOCKING)
+    res, wall2_collisionID = vrep.simxGetCollisionHandle(clientID, "wall2#", BLOCKING)
+    res, wall3_collisionID = vrep.simxGetCollisionHandle(clientID, "wall3#", BLOCKING)
 
     # start up devices
 
@@ -118,8 +124,10 @@ def setup_devices():
     for i in ultraID:
         vrep.simxReadProximitySensor(clientID, i, STREAMING)
     vrep.simxReadDistance(clientID, rewardRefID, STREAMING)
-    vrep.simxReadCollision(clientID, left_collisionID, STREAMING)
-    vrep.simxReadCollision(clientID, right_collisionID, STREAMING)
+    vrep.simxReadCollision(clientID, wall0_collisionID, STREAMING)
+    vrep.simxReadCollision(clientID, wall1_collisionID, STREAMING)
+    vrep.simxReadCollision(clientID, wall2_collisionID, STREAMING)
+    vrep.simxReadCollision(clientID, wall3_collisionID, STREAMING)
     vrep.simxReadCollision(clientID, target_collisionID, STREAMING)
 
 
@@ -161,20 +169,17 @@ def stop_motion():
     global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, 0, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, 0, STREAMING)
-    time.sleep(config.SLEEP_TIME)
+    # time.sleep(config.SLEEP_TIME)
 
 
 def is_collided_with_wall():
     """ judge if collision happens"""
-    global clientID, left_collisionID, right_collisionID
-    res, csl = vrep.simxReadCollision(clientID, left_collisionID, BUFFER)
-    res, csr = vrep.simxReadCollision(clientID, right_collisionID, BUFFER)
-    if csl:
-        print("Collision with left wall!")
-        return True
-    if csr:
-        print("Collision with right wall!")
-        return True
+    global clientID, wall0_collisionID, wall1_collisionID, wall2_collisionID, wall3_collisionID
+    for id in [wall0_collisionID, wall1_collisionID, wall2_collisionID, wall3_collisionID]:
+        res, status = vrep.simxReadCollision(clientID, id, BUFFER)
+        if status:
+            print("Collision is detected!")
+            return True
     return False
 
 
