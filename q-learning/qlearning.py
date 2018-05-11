@@ -14,7 +14,7 @@ class RL:
         self.alpha = alpha  # discount constant
         self.gamma = gamma  # learning rate
 
-        self.randomize = config.RANDOM_ACTIIVE
+        self.randomize = config.RANDOM_MOVES
 
     def getQ(self, state, action):
         return self.q.get((state, action), 0.0)

@@ -7,10 +7,10 @@ EPOCHS = 500
 restore = True
 alpha = 0.9
 gamma = 0.8
-epsilon = 0.3
+epsilon = 0.25
 valid_actions = ['forward', 'left_forward', 'right_forward']
 
-SPEED = 3
+SPEED = 6
 SLEEP_TIME = 0.1
 
 wait_response = False
@@ -31,4 +31,4 @@ DB_FOLDER = "save"
 
 PRECISION = 2
 
-RANDOM_ACTIIVE = False
+RANDOM_MOVES = True
