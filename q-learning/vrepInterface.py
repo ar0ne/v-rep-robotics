@@ -169,7 +169,7 @@ def stop_motion():
     global clientID, left_motorID, right_motorID
     vrep.simxSetJointTargetVelocity(clientID, left_motorID, 0, STREAMING)
     vrep.simxSetJointTargetVelocity(clientID, right_motorID, 0, STREAMING)
-    time.sleep(config.SLEEP_TIME * 2)
+    time.sleep(config.SLEEP_TIME * 3)
 
 
 def is_collided_with_wall():

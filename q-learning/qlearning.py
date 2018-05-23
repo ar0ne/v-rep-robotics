@@ -32,7 +32,7 @@ class RL:
 
             max_q_v = max([q[i][1] for i in range(len(q))])
             count = [maxV[1] for maxV in q].count(max_q_v)
-            if count > 1:
+            if count > 1 and max_q_v != 0:
                 return random.choice([q[i][0] for i in range(len(q)) if q[i][1] == max_q_v])
             return [q[i][0] for i in range(len(q)) if max_q_v == q[i][1]][0]
 

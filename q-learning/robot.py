@@ -36,7 +36,8 @@ class LearningAgent(object):
         self.far_time = 0
         self.ai = qlearning.RL()
         self.epi = 0
-        self.is_collision_detected = False
+        self.wall_collided = False
+        self.target_collided = False
 
         parent_path = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(parent_path, config.DB_FOLDER)
@@ -151,7 +152,7 @@ class LearningAgent(object):
     def get_next_state(self):
         speed_left, speed_right = config.valid_actions_dict[self.action]
 
-        rt = RepeatedTimer(0.1, self.check_for_collision)
+        rt = RepeatedTimer(0.05, self.check_for_collision)
         try:
             vrepInterface.move_wheels(speed_left, speed_right)
             vrepInterface.stop_motion()
@@ -164,31 +165,40 @@ class LearningAgent(object):
         return states(l=n_s[0], r=n_s[1])
 
     def check_for_collision(self):
-        if not self.is_collision_detected and vrepInterface.is_collided_with_wall():
-            self.is_collision_detected = True
+        if not self.wall_collided and vrepInterface.is_collided_with_wall():
+            self.wall_collided = True
+            return
+        if not self.wall_collided and vrepInterface.is_collided_with_target():
+            self.target_collided = True
+            return
 
     def get_reward(self):
-        if self.is_collision_detected:
+        if self.wall_collided:
             self.hit_wall_time += 1
             self.done = True
-            self.is_collision_detected = False
+            self.wall_collided = False
+            self.target_collided = False
             return -100
         reward_distance = vrepInterface.get_reward_distance()
-        if reward_distance < config.tolerance or vrepInterface.is_collided_with_target():
+        if reward_distance < config.tolerance or self.target_collided:
             print("Success!")
             self.done = True
             self.ok_time += 1
+            self.wall_collided = False
+            self.target_collided = False
             return 100
         elif reward_distance >= config.MAX_DISTANCE or self.state == states(l=-1.0, r=-1.0):
             print("too far!")
             self.done = True
             self.far_time += 1
+            self.wall_collided = False
+            self.target_collided = False
             return -100
         else:
-            return 0.
+            # return config.DEFAULT_REWARD
             # return 1. / reward_ref
             # return - (1 - ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE)
-            # return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
+            return ( config.MAX_DISTANCE - reward_distance ) / config.MAX_DISTANCE
 
 
 if __name__ == '__main__':

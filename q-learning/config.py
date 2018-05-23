@@ -3,7 +3,7 @@
 
 import numpy as np
 
-EPOCHS = 500
+EPOCHS = 1500
 restore = True
 alpha = 0.9
 gamma = 0.8
@@ -24,7 +24,7 @@ grid_width = 0.002
 
 MAX_DISTANCE = 1.4
 
-DEADLINE = 100
+DEADLINE = 120
 
 DB_NAME = "data.pkl"
 DB_FOLDER = "save"
@@ -32,3 +32,5 @@ DB_FOLDER = "save"
 PRECISION = 2
 
 RANDOM_MOVES = True
+
+DEFAULT_REWARD = -0.1
