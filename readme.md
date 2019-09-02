@@ -1,4 +1,4 @@
-#Overview 
+# Overview 
 
 This project is implementation of Bug's algorithms for mobile robots in [V-REP robot simulator](http://coppeliarobotics.com/).
 
@@ -17,7 +17,7 @@ You can see demo video in `/video` folder or on youtube:
 [![Bug 1 algorithm](http://img.youtube.com/vi/tzP2euz-MT4/0.jpg)](http://www.youtube.com/watch?v=tzP2euz-MT4)
 
 
-#How to use?
+# How to use?
 
 1. If you don't have then you must to install Python and [V-REP simulator](http://www.coppeliarobotics.com/downloads.html).
 
